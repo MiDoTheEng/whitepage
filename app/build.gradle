@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'app.whitepage'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "app.whitepage.print"
+        minSdk 29
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('whitepage.keystore')
+            storePassword 'whitepage123'
+            keyAlias 'whitepage'
+            keyPassword 'whitepage123'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            signingConfig signingConfigs.release   // same key every build, so updates install over the old app
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint { checkReleaseBuilds false; abortOnError false }
+
+    dependenciesInfo { includeInApk false; includeInBundle false }
+}
