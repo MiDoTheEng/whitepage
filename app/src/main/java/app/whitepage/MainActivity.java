@@ -226,9 +226,11 @@ public class MainActivity extends Activity {
         LinearLayout seg = new LinearLayout(this);
         seg.setOrientation(LinearLayout.HORIZONTAL);
         card.addView(seg, lp(-1, dp(48), 8));
-        keepBtn = button("Black + keep colors", INK, PAPER, 0);
+        keepBtn = button("Keep colors", INK, PAPER, 0);
         blackBtn = button("All black", Color.TRANSPARENT, INK, Color.rgb(226, 216, 207));
-        keepBtn.setTextSize(14); blackBtn.setTextSize(14);
+        keepBtn.setTextSize(15); blackBtn.setTextSize(15);
+        keepBtn.setSingleLine(true); blackBtn.setSingleLine(true);
+        keepBtn.setPadding(dp(8), 0, dp(8), 0); blackBtn.setPadding(dp(8), 0, dp(8), 0);
         keepBtn.setMinHeight(dp(48)); blackBtn.setMinHeight(dp(48));
         LinearLayout.LayoutParams half = new LinearLayout.LayoutParams(0, -1, 1);
         LinearLayout.LayoutParams half2 = new LinearLayout.LayoutParams(0, -1, 1);
@@ -311,16 +313,20 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------------ loading
 
     void pick() {
-        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        i.addCategory(Intent.CATEGORY_OPENABLE);
-        i.setType("image/*");
-        try {
-            startActivityForResult(i, REQ_PICK);
-        } catch (Exception e) {
-            Intent g = new Intent(Intent.ACTION_GET_CONTENT);
-            g.setType("image/*");
-            startActivityForResult(g, REQ_PICK);
+        // open the phone's gallery; fall back to the photo picker, then the file picker
+        Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        gallery.setType("image/*");
+        Intent photos = new Intent(MediaStore.ACTION_PICK_IMAGES);
+        Intent files = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        files.addCategory(Intent.CATEGORY_OPENABLE);
+        files.setType("image/*");
+        for (Intent i : new Intent[]{gallery, photos, files}) {
+            try {
+                startActivityForResult(i, REQ_PICK);
+                return;
+            } catch (Exception ignored) {}
         }
+        toast("No gallery app found");
     }
 
     @Override
