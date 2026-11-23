@@ -313,9 +313,13 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------------ loading
 
     void pick() {
-        // open the phone's gallery; fall back to the photo picker, then the file picker
+        // open the phone's gallery app directly (no "open with" question);
+        // fall back to Android's photo picker, then the file picker
         Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         gallery.setType("image/*");
+        String pkg = galleryPackage(gallery);
+        if (pkg != null) gallery.setPackage(pkg);
+        else gallery = new Intent(MediaStore.ACTION_PICK_IMAGES);
         Intent photos = new Intent(MediaStore.ACTION_PICK_IMAGES);
         Intent files = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         files.addCategory(Intent.CATEGORY_OPENABLE);
@@ -327,6 +331,21 @@ public class MainActivity extends Activity {
             } catch (Exception ignored) {}
         }
         toast("No gallery app found");
+    }
+
+    // Prefer the phone maker's gallery, then Google Photos, then any other picture app.
+    String galleryPackage(Intent pick) {
+        java.util.List<android.content.pm.ResolveInfo> list =
+                getPackageManager().queryIntentActivities(pick, 0);
+        String photos = null, other = null;
+        for (android.content.pm.ResolveInfo ri : list) {
+            String p = ri.activityInfo.packageName;
+            String low = p.toLowerCase(Locale.US);
+            if (low.contains("gallery") || low.contains("album")) return p;
+            if (p.equals("com.google.android.apps.photos")) photos = p;
+            else if (other == null && !low.contains("documentsui") && !low.contains("files")) other = p;
+        }
+        return photos != null ? photos : other;
     }
 
     @Override
